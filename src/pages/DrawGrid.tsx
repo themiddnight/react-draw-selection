@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import BaseGridCanvas from '../components/grid/BaseGrid';
 import DrawingGridCanvas from '../components/grid/DrawingGrid';
-import { booleanArrayToDecimal } from '../utils/functions';
-import { GridType } from '../utils/interface';
+import { booleanArrayToDecimal, decimalToBooleanArray } from '../utils/functions';
+import { GridDecimal, GridType } from '../utils/interface';
+
+import { initGridData } from '../utils/mockData';
 
 const canvases = [
   { i: 0, color: '#ff000066', zIndex: 20 },
@@ -13,13 +15,22 @@ const canvases = [
 
 export default function DrawGrid() {
   const [gridData, setGridData] = useState<GridType[]>([]);
-  const [gridDecimalData, setGridDecimalData] = useState<number[][]>(() => {
+  const [gridDecimalData, setGridDecimalData] = useState<GridDecimal[]>(() => {
     return Array.from({ length: 3 }, () => {
       return Array(18).fill(0);
     });
   });
   const [activeCanvas, setActiveCanvas] = useState(0)
   const [isIsolated, setIsIsolated] = useState(false);
+
+  const convertedInitData = useMemo(() => {
+    setGridDecimalData(initGridData)
+    return initGridData.map((grid) => {
+      return grid.map((row) => {
+        return decimalToBooleanArray(row);
+      })
+    })
+  }, [])
   
   const handleGridChange = (i: number, newGrid: GridType) => {
     const newGridData = [...gridData];
@@ -43,10 +54,11 @@ export default function DrawGrid() {
             className='object-cover w-full h-full'
             onContextMenu={(e) => e.preventDefault()}
           />
-          {canvases.map((canvas) => (
+          {canvases.map((canvas, index) => (
             <DrawingGridCanvas
               key={canvas.i}
               fillColor={canvas.color}
+              initialGrid={convertedInitData[index]}
               onGridChange={(grid) => handleGridChange(canvas.i, grid)}
               disabled={activeCanvas !== canvas.i}
               style={{

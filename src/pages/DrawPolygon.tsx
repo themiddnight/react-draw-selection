@@ -1,8 +1,23 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import PolygonMultiDrawer, { Shape } from '../components/draw/PolygonMultipleKonvaCanvas'
+
+import { initPolygonData } from '../utils/mockData'
 
 export default function DrawPolygon() {
   const [shapes, setShapes] = useState<Shape[]>([])
+
+  const convertedInitData = useMemo(() => {
+    return initPolygonData.map((shape) => {
+      const points = shape.points.map((point) => ({
+        x: point.x,
+        y: 1000 - point.y, // Invert y-coordinate
+      }))
+      return {
+        ...shape,
+        points,
+      }
+    })
+  }, [])
 
   function handleChange(shapes: Shape[]) {
     const newShapes = shapes.map(s => {
@@ -24,7 +39,7 @@ export default function DrawPolygon() {
           className='object-cover w-full h-full'
           onContextMenu={(e) => e.preventDefault()}
         />
-        <PolygonMultiDrawer onChange={handleChange} width={960} height={540} />
+        <PolygonMultiDrawer onChange={handleChange} width={960} height={540} initData={convertedInitData} />
       </div>
       <div className='flex flex-col gap-3 w-full overflow-auto' style={{ height: 540 }}>
         <h2>Is Valid</h2>
@@ -37,3 +52,4 @@ export default function DrawPolygon() {
     </>
   )
 }
+
